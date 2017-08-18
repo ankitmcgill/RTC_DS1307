@@ -29,9 +29,101 @@
   #define PUTINFLASH  ICACHE_FLASH_ATTR
 #endif
 
-#define RTC_DS1307_ADDRESS  0xD0
+#define RTC_DS1307_I2C_ADDRESS        0xD0
+#define RTC_DS1307_REGISTER_NVRAM_LEN 56
+
+//DS1307 REGISTER MAP
+#define RTC_DS1307_REGISTER_SECONDS   0x00
+#define RTC_DS1307_REGISTER_MINUTES   0x01
+#define RTC_DS1307_REGISTER_HOURS     0x02
+#define RTC_DS1307_REGISTER_DAY       0x03
+#define RTC_DS1307_REGISTER_DATE      0x04
+#define RTC_DS1307_REGISTER_MONTH     0x05
+#define RTC_DS1307_REGISTER_YEAR      0x06
+#define RTC_DS1307_REGISTER_CONTROL   0x07
+#define RTC_DS1307_REGISTER_NVRAM     0x08
+
+//DS1307 CONTROL REGISTER OPTIONS DEFINE
+#define RTC_DS1307_CONTROL_OUT              (1 << 7)
+#define RTC_DS1307_CONTROL_SQWE             (1 << 4)
+#define RTC_DS1307_CONTROL_SW_FREQ_1HZ      (0)
+#define RTC_DS1307_CONTROL_SW_FREQ_4096HZ   (1 << 0)
+#define RTC_DS1307_CONTROL_SW_FREQ_8192HZ   (1 << 1)
+#define RTC_DS1307_CONTROL_SW_FREQ_32768HZ  ((1 << 0) | (1 << 1))
+
+//DS1307 TIME REGISTER OPERATIONS
+#define RTC_DS1307_SECONDS_GET_CH_BIT(x)    ((x & 0x80) >> 7)
+#define RTC_DS1307_SECONDS_SET_CH_BIT(x)    (x | 0x70)
+#define RTC_DS1307_SECONDS_GET_DIG0(x)      (x & 0x0F)
+#define RTC_DS1307_SECONDS_GET_DIG1(x)      ((x & 0x70) >> 4)
+#define RTC_DS1307_SECONDS_SET_DIG0(x,y)    (x | y)
+#define RTC_DS1307_SECONDS_SET_DIG1(x,y)    (x | (y << 4))
+
+#define RTC_DS1307_MINUTES_GET_DIG0(x)      (x & 0x0F)
+#define RTC_DS1307_MINUTES_GET_DIG1(x)      ((x & 0xF0) >> 4)
+#define RTC_DS1307_MINUTES_SET_DIG0(x)      (x | y)
+#define RTC_DS1307_MINUTES_SET_DIG1(x)      (x | (y << 4))
+
+#define RTC_DS1307_HOURS_GET_1224_BIT(x)    ((x | 0x40) >> 6)
+#define RTC_DS1307_HOURS_SET12(x)           (x | 0x40)
+#define RTC_DS1307_HOURS_SET24(x)           (x & ~(1 << 6))
+#define RTC_DS1307_HOURS_GET_AMPM_BIT(x)    ((x & 0x20) >> 5)
+#define RTC_DS1307_HOURS_SETAM(x)           (x & ~(1 << 5))
+#define RTC_DS1307_HOURS_SETPM(x)           (x | (1 << 5))
+#define RTC_DS1307_HOURS_12_GET_DIG0(x)     (x & 0x0F)
+#define RTC_DS1307_HOURS_12_GET_DIG1(x)     ((x & 0x10) >> 4)
+#define RTC_DS1307_HOURS_24_GET_DIG0(x)     (x & 0x0F)
+#define RTC_DS1307_HOURS_24_GET_DIG1(x)     ((x & 0x30) >> 4)
+#define RTC_DS1307_HOURS_SET_DIG0(x, y)     (x | y)
+#define RTC_DS1307_HOURS_SET_DIG1(x, y)     (x | (y << 4)
+
+#define RTC_DS1307_DAY_GET(x)               (x & 0x07)
+#define RTC_DS1307_DAY_SET(x,y)             (x | y)
+
+#define RTC_DS1307_DATE_GET_DIG0(x)         (x & 0x0F)
+#define RTC_DS1307_DATE_GET_DIG1(x)         ((x & 0x30) >> 4)
+#define RTC_DS1307_DATE_SET_DIG0(x,y)       (x | y)
+#define RTC_DS1307_DATE_SET_DIG1(x,y)       (x | (y >> 4))
+
+#define RTC_DS1307_MONTH_GET_DIG0(x)        (x & 0x0F)
+#define RTC_DS1307_MONTH_GET_DIG1(x)        ((x & 0x10) >> 4)
+#define RTC_DS1307_MONTH_SET_DIG0(x,y)      (x | y)
+#define RTC_DS1307_MONTH_SET_DIG1(x,y)      (x | (y << 4))
+
+#define RTC_DS1307_YEAR_GET_DIG0(x)         (x & 0x0F)
+#define RTC_DS1307_YEAR_GET_DIG1(x)         ((x & 0xF0) >> 4)
+#define RTC_DS1307_YEAR_SET_DIG0(x,y)       (x | y)
+#define RTC_DS1307_YEAR_SET_DIG1(x,y)       (x | (y << 4))
+
+#define RTC_DS1307_CONTROL_GET_OUT(x)       ((x & 0x70) >> 7)
+#define RTC_DS1307_CONTROL_SET_OUT(x)       (x | 0x70)
+#define RTC_DS1307_CONTROL_GET_SQWE(x)      ((x & 0x10) >> 4)
+#define RTC_DS1307_CONTROL_SET_SQWE(x)      (x | 0x10)
+#define RTC_DS1307_CONTROL_GET_RS1(x)       ((x & 0x02) >> 1)
+#define RTC_DS1307_CONTROL_SET_RS1(x)       (x | 0x02)
+#define RTC_DS1307_CONTROL_GET_RS0(x)       (x & 0x01)
+#define RTC_DS1307_CONTROL_SET_RS0(x)       (x | 0x01)
 
 //CUSTOM VARIABLE STRUCTURES/////////////////////////////
+typedef enum
+{
+    sqw_1hz = 0,
+    sqw_4096hz,
+    sqw_8192hz,
+    sqw_32768hz
+} RTC_DS1307_SQW_FREQ;
+
+typedef struct
+{
+    uint8_t out;
+    uint8_t sqwe;
+    RTC_DS1307_SQW_FREQ freq;
+} RTC_DS1307_CONTROL;
+
+typedef struct
+{
+
+} RTC_DS1307_TIME;
 //END CUSTOM VARIABLE STRUCTURES/////////////////////////
 
 //FUNCTION PROTOTYPES/////////////////////////////////////
@@ -43,15 +135,21 @@ void PUTINFLASH RTC_DS1307_SetI2CFunctions(void (*i2c_init)(uint8_t),
                                             uint8_t (*i2c_readbyte)(uint8_t),
                                             void (*i2c_readbytemultiple)(uint8_t, uint8_t*, uint8_t)
                                           );
-void PUTINFLASH RTC_DS1307_Initialize(void);
 
 
 //GET PARAMETERS FUNCTIONS
+uint8_t PUTINFLASH RTC_DS1307_GetControlRegister(void);
+void PUTINFLASH RTC_DS1307_GetTime(void);
 
+//SET PARAMETERS FUNCTIONS
+void PUTINFLASH RTC_DS1307_SetControlRegister(RTC_DS1307_CONTROL control);
 
 //CONTROL FUNCTIONS
+void PUTINFLASH RTC_DS1307_StartOcillator(void);
+void PUTINFLASH RTC_DS1307_StopOscillator(void);
+void PUTINFLASH RTC_DS1307_Initialize(void);
 
 //INTERNAL FUNCTIONS
-
+uint8_t PUTINFLASH _rtc_ds1307_get_ch_bit(void);
 //END FUNCTION PROTOTYPES/////////////////////////////////
 #endif
