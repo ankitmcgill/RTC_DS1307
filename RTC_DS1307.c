@@ -223,6 +223,9 @@ void PUTINFLASH RTC_DS1307_Initialize(void)
         ESP8266_I2C_Init(RTC_DS1307_I2C_ADDRESS);
     #endif
 
+    //VERIFY CH BIT
+    _rtc_ds1307_verify_ch_bit();
+
     if(_rtc_ds1307_debug)
     {
         PRINTF("RTC : DS1307 : Initialized\n");
