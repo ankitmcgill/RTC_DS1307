@@ -137,10 +137,26 @@ typedef enum
     monday,
     tuesday,
     wednesday,
-    thrursday,
+    thursday,
     friday,
     saturday
 }RTC_DS1307_DAYFORMAT_CONFIG;
+
+typedef enum
+{
+    january = 1,
+    february,
+    march,
+    april,
+    may,
+    june,
+    july,
+    august,
+    sepetmber,
+    october,
+    november,
+    december
+}RTC_DS1307_MONTHFORMAT_CONFIG;
 
 typedef struct
 {
@@ -151,7 +167,7 @@ typedef struct
   RTC_DS1307_TIMEFORMAT_AMPM am_pm;
   RTC_DS1307_DAYFORMAT_CONFIG day;
   uint8_t date;
-  uint8_t month;
+  RTC_DS1307_MONTHFORMAT_CONFIG month;
   uint16_t year;
 } RTC_DS1307_TIME;
 //END CUSTOM VARIABLE STRUCTURES/////////////////////////
@@ -159,17 +175,17 @@ typedef struct
 //FUNCTION PROTOTYPES/////////////////////////////////////
 //CONFIGURATION FUNCTIONS
 void PUTINFLASH RTC_DS1307_SetDebug(uint8_t debug_on);
-void PUTINFLASH RTC_DS1307_SetI2CFunctions(void (*i2c_init)(uint8_t),
-                                            void (*i2c_writebyte)(uint8_t, uint8_t),
-                                            void (*i2c_writebytemultiple)(uint8_t, uint8_t*, uint8_t),
-                                            uint8_t (*i2c_readbyte)(uint8_t),
-                                            void (*i2c_readbytemultiple)(uint8_t, uint8_t*, uint8_t)
+void PUTINFLASH RTC_DS1307_SetI2CFunctions(void (*i2c_init)(void),
+                                            void (*i2c_writebyte)(uint8_t, uint32_t, uint8_t, uint8_t),
+                                            void (*i2c_writebytemultiple)(uint8_t, uint32_t, uint8_t, uint8_t*, uint8_t),
+                                            uint8_t (*i2c_readbyte)(uint8_t, uint32_t, uint8_t),
+                                            void (*i2c_readbytemultiple)(uint8_t, uint32_t, uint8_t, uint8_t*, uint8_t)
                                           );
 
 
 //GET PARAMETERS FUNCTIONS
 uint8_t PUTINFLASH RTC_DS1307_GetControlRegister(void);
-RTC_DS1307_TIME*  PUTINFLASH RTC_DS1307_GetTime(void);
+void PUTINFLASH RTC_DS1307_GetTime(RTC_DS1307_TIME* time);
 
 //SET PARAMETERS FUNCTIONS
 void PUTINFLASH RTC_DS1307_SetControlRegister(RTC_DS1307_CONTROL_CONFIG control);
@@ -180,6 +196,10 @@ void PUTINFLASH RTC_DS1307_SetTime(RTC_DS1307_TIME time);
 void PUTINFLASH RTC_DS1307_StartOcillator(void);
 void PUTINFLASH RTC_DS1307_StopOscillator(void);
 void PUTINFLASH RTC_DS1307_Initialize(void);
+
+//USER HELPER FUNCTIONS
+RTC_DS1307_DAYFORMAT_CONFIG PUTINFLASH RTC_DS1307_ConvertDayStringToValue(char* day_str);
+RTC_DS1307_MONTHFORMAT_CONFIG PUTINFLASH RTC_DS1307_ConvertMonthStringToValue(char* month_str);
 
 //INTERNAL FUNCTIONS
 uint8_t PUTINFLASH _rtc_ds1307_verify_ch_bit(void);
