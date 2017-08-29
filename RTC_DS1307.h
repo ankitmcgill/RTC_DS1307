@@ -198,8 +198,12 @@ void PUTINFLASH RTC_DS1307_StopOscillator(void);
 void PUTINFLASH RTC_DS1307_Initialize(void);
 
 //USER HELPER FUNCTIONS
+void PUTINFLASH RTC_DS1307_GetCompleteDataBlock(char* ptr);
+void PUTINFLASH RTC_DS1306_ConvertDataBlockToTimeComponents(char* block, RTC_DS1307_TIME* time);
 RTC_DS1307_DAYFORMAT_CONFIG PUTINFLASH RTC_DS1307_ConvertDayStringToValue(char* day_str);
 RTC_DS1307_MONTHFORMAT_CONFIG PUTINFLASH RTC_DS1307_ConvertMonthStringToValue(char* month_str);
+void PUTINFLASH RTC_DS1307_ConvertDayToString(uint8_t day, char* str);
+void PUTINFLASH RTC_DS1307_ConvertMonthToString(uint8_t month, char* str);
 
 //INTERNAL FUNCTIONS
 uint8_t PUTINFLASH _rtc_ds1307_verify_ch_bit(void);

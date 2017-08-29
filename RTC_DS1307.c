@@ -17,7 +17,7 @@
 #include "RTC_DS1307.h"
 
 //LOCAL LIBRARY VARIABLES/////////////////////////////////////
-//DEBUG RELATRED
+//DEBUG RELATED
 static uint8_t _rtc_ds1307_debug;
 
 //I2C FUNCTION POINTERS
@@ -228,6 +228,42 @@ void PUTINFLASH RTC_DS1307_Initialize(void)
     }
 }
 
+void PUTINFLASH RTC_DS1307_GetCompleteDataBlock(char* ptr)
+{
+  //RETURN THE COMPLETE DS1307 DATA BLOCK AS IT IS ( 7 BYTES)
+
+  (*_rtc_ds1307_i2c_readbyte_multiple)(RTC_DS1307_I2C_ADDRESS, RTC_DS1307_REGISTER_SECONDS, 1, ptr, 7);
+
+  if(_rtc_ds1307_debug)
+  {
+    PRINTF("RTC : DS1307 : Read + returned the complete data block\n");
+  }
+}
+
+void PUTINFLASH RTC_DS1306_ConvertDataBlockToTimeComponents(char* block, RTC_DS1307_TIME* time)
+{
+  //GET THE TIME FROM THE SPECIFIED DATA BLOCK AND COVERT IT TO ITS TIME COMPONENTS
+
+  time->second = (RTC_DS1307_SECONDS_GET_DIG1(block[0]) * 10) + RTC_DS1307_SECONDS_GET_DIG0(block[0]);
+  time->minute = (RTC_DS1307_MINUTES_GET_DIG1(block[1]) * 10) + RTC_DS1307_MINUTES_GET_DIG0(block[1]);
+  time->hour_format = RTC_DS1307_HOURS_GET_1224_BIT(block[2]);
+  if(time->hour_format == timeformat_12)
+  {
+      //12 HR FORMAT
+      time->am_pm = RTC_DS1307_HOURS_GET_AMPM_BIT(block[2]);
+      time->hour = (RTC_DS1307_HOURS_12_GET_DIG1(block[2]) * 10) + RTC_DS1307_HOURS_12_GET_DIG0(block[2]);
+  }
+  else
+  {
+        time->hour = (RTC_DS1307_HOURS_24_GET_DIG1(block[2]) * 10) + RTC_DS1307_HOURS_24_GET_DIG0(block[2]);
+  }
+
+  time->day = RTC_DS1307_DAY_GET(block[3]);
+  time->date = (RTC_DS1307_DATE_GET_DIG1(block[4]) * 10) + RTC_DS1307_DATE_GET_DIG0(block[4]);
+  time->month = (RTC_DS1307_MONTH_GET_DIG1(block[5]) * 10) + RTC_DS1307_MONTH_GET_DIG0(block[5]);
+  time->year = 2000 + (RTC_DS1307_YEAR_GET_DIG1(block[6]) * 10) + RTC_DS1307_YEAR_GET_DIG0(block[6]);
+}
+
 RTC_DS1307_DAYFORMAT_CONFIG PUTINFLASH RTC_DS1307_ConvertDayStringToValue(char* day_str)
 {
     //USER HELPER FUNCTION TO CONVERT DAY STRING TO DAY VALUE
@@ -276,6 +312,81 @@ RTC_DS1307_MONTHFORMAT_CONFIG PUTINFLASH RTC_DS1307_ConvertMonthStringToValue(ch
       return november;
     else if(strcmp(month_str, "Dec") == 0)
       return december;
+}
+
+void PUTINFLASH RTC_DS1307_ConvertDayToString(uint8_t day, char* str)
+{
+  //CONVERT DAY ENUM TO STRING
+
+  switch(day)
+  {
+    case sunday:
+          strcpy(str, "Sun");
+          break;
+    case monday:
+          strcpy(str, "Mon");
+          break;
+    case tuesday:
+          strcpy(str, "Tue");
+          break;
+    case wednesday:
+          strcpy(str, "Wed");
+          break;
+    case thursday:
+          strcpy(str, "Thu");
+          break;
+    case friday:
+          strcpy(str, "Fri");
+          break;
+    case saturday:
+          strcpy(str, "Sat");
+          break;
+  }
+}
+
+void PUTINFLASH RTC_DS1307_ConvertMonthToString(uint8_t month, char* str)
+{
+  //CONVERT MONTH ENUM TO STRING
+
+  switch(month)
+  {
+    case january:
+          strcpy(str, "Jan");
+          break;
+    case february:
+          strcpy(str, "Feb");
+          break;
+    case march:
+          strcpy(str, "Mar");
+          break;
+    case april:
+          strcpy(str, "Apr");
+          break;
+    case may:
+          strcpy(str, "May");
+          break;
+    case june:
+          strcpy(str, "Jun");
+          break;
+    case july:
+          strcpy(str, "Jul");
+          break;
+    case august:
+          strcpy(str, "Aug");
+          break;
+    case sepetmber:
+          strcpy(str, "Sep");
+          break;
+    case october:
+          strcpy(str, "Oct");
+          break;
+    case november:
+          strcpy(str, "Nov");
+          break;
+    case december:
+          strcpy(str, "Dec");
+          break;
+  }
 }
 
 uint8_t PUTINFLASH _rtc_ds1307_verify_ch_bit(void)
